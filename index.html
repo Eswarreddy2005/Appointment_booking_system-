@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedQueue — Hospital Appointment Booking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --ink:#132420;
+  --ink-soft:#3d5049;
+  --paper:#EEF3EE;
+  --paper-raised:#F8FAF7;
+  --teal-deep:#0F3B39;
+  --teal-mid:#1F6F68;
+  --teal-pale:#DCEAE6;
+  --sage:#8FAE9B;
+  --amber:#D9A441;
+  --amber-deep:#8C6118;
+  --brick:#B5433B;
+  --brick-pale:#F5E1DE;
+  --line: rgba(19,36,32,0.14);
+  --line-soft: rgba(19,36,32,0.08);
+  --font-display:'Fraunces', serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+  --shadow-card: 0 1px 2px rgba(19,36,32,0.06), 0 6px 20px rgba(19,36,32,0.05);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;margin:0;color:var(--teal-deep);}
+p{margin:0;}
+a{color:inherit;}
+button{font-family:var(--font-body);cursor:pointer;}
+::selection{background:var(--amber);color:var(--teal-deep);}
+:focus-visible{outline:2.5px solid var(--amber-deep);outline-offset:2px;}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+
+/* ---------- Header ---------- */
+header.site{
+  position:sticky;top:0;z-index:40;
+  background:rgba(238,243,238,0.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav-row{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--teal-deep);}
+.brand-mark{width:32px;height:32px;border-radius:8px;background:var(--teal-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-mark svg{width:18px;height:18px;}
+nav.links{display:flex;gap:28px;font-size:14.5px;font-weight:500;}
+nav.links a{text-decoration:none;color:var(--ink-soft);padding:4px 0;border-bottom:2px solid transparent;transition:border-color .15s, color .15s;}
+nav.links a:hover{color:var(--teal-deep);border-bottom-color:var(--sage);}
+.cta-btn{
+  background:var(--teal-deep);color:#F8FAF7;border:none;border-radius:8px;
+  padding:11px 20px;font-size:14.5px;font-weight:600;letter-spacing:.01em;
+  transition:background .15s, transform .1s;
+}
+.cta-btn:hover{background:#0a2b29;}
+.cta-btn:active{transform:scale(.97);}
+.cta-btn.ghost{background:transparent;color:var(--teal-deep);border:1.5px solid var(--line);}
+.cta-btn.ghost:hover{background:var(--teal-pale);}
+.header-actions{display:flex;gap:10px;align-items:center;}
+@media (max-width:820px){ nav.links{display:none;} }
+
+/* ---------- Hero ---------- */
+.hero{padding:72px 0 56px;}
+.hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:56px;align-items:center;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);
+  font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-mid);
+  font-weight:500;
+}
+.eyebrow::before{content:'';width:16px;height:1.5px;background:var(--amber);}
+.hero h1{font-size:52px;line-height:1.05;margin-top:16px;letter-spacing:-.01em;}
+.hero h1 em{font-style:italic;color:var(--brick);font-weight:500;}
+.hero p.lead{font-size:17px;color:var(--ink-soft);margin-top:20px;max-width:46ch;}
+.hero-ctas{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap;}
+.stat-row{display:flex;gap:32px;margin-top:44px;padding-top:28px;border-top:1px solid var(--line);flex-wrap:wrap;}
+.stat b{display:block;font-family:var(--font-mono);font-size:22px;color:var(--teal-deep);font-weight:600;}
+.stat span{font-size:12.5px;color:var(--ink-soft);}
+
+/* ---------- Ticket (signature element) ---------- */
+.ticket{
+  position:relative;background:var(--paper-raised);border:1px solid var(--line);
+  border-radius:14px;box-shadow:var(--shadow-card);
+  display:flex;overflow:visible;
+}
+.ticket-main{flex:1;padding:26px 22px;}
+.ticket-stub{width:112px;padding:26px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative;}
+.ticket-seam{position:relative;width:0;border-left:2px dashed var(--line);}
+.ticket-seam::before,.ticket-seam::after{
+  content:'';position:absolute;left:-9px;width:18px;height:18px;border-radius:50%;background:var(--paper);
+}
+.ticket-seam::before{top:-9px;}
+.ticket-seam::after{bottom:-9px;}
+.ticket-kicker{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-mid);}
+.ticket-row{display:flex;justify-content:space-between;margin-top:14px;}
+.ticket-row .l{font-size:12px;color:var(--ink-soft);}
+.ticket-row .v{font-family:var(--font-mono);font-size:13px;font-weight:500;}
+.token-num{font-family:var(--font-mono);font-size:26px;font-weight:600;color:var(--teal-deep);writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.05em;}
+.token-lbl{font-family:var(--font-mono);font-size:10px;color:var(--ink-soft);writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.1em;text-transform:uppercase;}
+.barcode{display:flex;gap:2px;height:28px;align-items:flex-end;margin-top:16px;}
+.barcode i{display:block;background:var(--ink);opacity:.75;width:2px;}
+
+/* ---------- Section shell ---------- */
+section{padding:64px 0;}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:32px;flex-wrap:wrap;}
+.section-head h2{font-size:32px;}
+.section-head p{color:var(--ink-soft);font-size:15px;max-width:48ch;margin-top:6px;}
+
+/* ---------- Departments ---------- */
+.dept-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.dept-card{
+  background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;
+  padding:22px 20px;cursor:pointer;transition:border-color .15s, transform .12s, box-shadow .15s;
+  text-align:left;
+}
+.dept-card:hover{border-color:var(--teal-mid);transform:translateY(-2px);box-shadow:var(--shadow-card);}
+.dept-card.active{border-color:var(--teal-deep);background:var(--teal-pale);}
+.dept-icon{width:38px;height:38px;border-radius:9px;background:var(--teal-pale);display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.dept-icon svg{width:20px;height:20px;stroke:var(--teal-deep);}
+.dept-card h4{font-size:16px;color:var(--ink);font-weight:600;font-family:var(--font-body);}
+.dept-card .count{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:6px;display:block;}
+@media (max-width:900px){.dept-grid{grid-template-columns:repeat(2,1fr);}}
+
+/* ---------- Doctors ---------- */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;}
+.chip{
+  border:1px solid var(--line);background:var(--paper-raised);color:var(--ink-soft);
+  border-radius:999px;padding:8px 16px;font-size:13.5px;font-weight:500;transition:all .15s;
+}
+.chip:hover{border-color:var(--teal-mid);}
+.chip.active{background:var(--teal-deep);color:#F8FAF7;border-color:var(--teal-deep);}
+.doctor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.doc-card{
+  background:var(--paper-raised);border:1px solid var(--line);border-radius:14px;
+  padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow-card);
+}
+.doc-top{display:flex;gap:14px;align-items:flex-start;}
+.avatar{width:52px;height:52px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:17px;color:#fff;}
+.doc-name{font-size:16.5px;font-weight:600;color:var(--ink);}
+.doc-spec{font-size:13px;color:var(--teal-mid);font-weight:500;margin-top:2px;}
+.doc-meta{display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);flex-wrap:wrap;}
+.doc-meta span{display:flex;align-items:center;gap:5px;}
+.doc-bio{font-size:13.5px;color:var(--ink-soft);line-height:1.5;}
+.doc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px;border-top:1px solid var(--line-soft);}
+.next-slot{font-family:var(--font-mono);font-size:12.5px;}
+.next-slot b{color:var(--teal-deep);}
+.book-btn{background:var(--amber);color:#432D06;border:none;border-radius:8px;padding:9px 16px;font-size:13.5px;font-weight:600;transition:background .15s;}
+.book-btn:hover{background:#c8912f;}
+@media (max-width:980px){.doctor-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:680px){.doctor-grid{grid-template-columns:1fr;} .hero-grid{grid-template-columns:1fr;} .dept-grid{grid-template-columns:repeat(2,1fr);}}
+
+/* ---------- My Appointments ---------- */
+.appt-list{display:flex;flex-direction:column;gap:14px;}
+.appt-empty{
+  border:1.5px dashed var(--line);border-radius:14px;padding:48px 24px;text-align:center;color:var(--ink-soft);
+}
+.appt-empty h4{color:var(--ink);font-family:var(--font-body);font-size:16px;margin-bottom:6px;}
+.appt-row{
+  display:flex;align-items:stretch;background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+}
+.appt-status{width:6px;flex-shrink:0;}
+.appt-status.upcoming{background:var(--teal-mid);}
+.appt-status.cancelled{background:var(--brick);}
+.appt-body{flex:1;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+.appt-info b{font-size:15px;font-family:var(--font-body);}
+.appt-info .sub{font-size:13px;color:var(--ink-soft);margin-top:3px;}
+.appt-when{font-family:var(--font-mono);font-size:13.5px;text-align:right;}
+.appt-when .token{font-size:11px;color:var(--teal-mid);letter-spacing:.05em;}
+.appt-actions{display:flex;gap:8px;}
+.cancel-btn{background:transparent;border:1.5px solid var(--brick);color:var(--brick);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;}
+.cancel-btn:hover{background:var(--brick-pale);}
+.badge{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:5px;}
+.badge.upcoming{background:var(--teal-pale);color:var(--teal-deep);}
+.badge.cancelled{background:var(--brick-pale);color:var(--brick);}
+
+/* ---------- Footer ---------- */
+footer{border-top:1px solid var(--line);padding:40px 0;margin-top:20px;}
+.foot-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--ink-soft);}
+.foot-emerg{font-family:var(--font-mono);color:var(--brick);}
+
+/* ---------- Overlay / Booking wizard ---------- */
+.overlay{
+  position:fixed;inset:0;background:rgba(13,25,22,0.55);z-index:100;
+  display:none;align-items:flex-start;justify-content:center;padding:48px 20px;overflow-y:auto;
+}
+.overlay.open{display:flex;}
+.modal{
+  background:var(--paper);border-radius:16px;width:100%;max-width:620px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.25);position:relative;
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:22px 26px;border-bottom:1px solid var(--line);}
+.modal-head h3{font-size:19px;}
+.close-x{background:none;border:none;font-size:22px;color:var(--ink-soft);line-height:1;padding:4px;}
+.close-x:hover{color:var(--ink);}
+.steps-bar{display:flex;gap:6px;padding:18px 26px 0;}
+.step-dot{flex:1;height:3px;border-radius:2px;background:var(--line);}
+.step-dot.done{background:var(--teal-mid);}
+.step-dot.current{background:var(--amber);}
+.modal-body{padding:22px 26px 26px;}
+.step-label{font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--teal-mid);margin-bottom:8px;}
+.pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;}
+.pick-card{
+  border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;text-align:left;background:var(--paper-raised);
+  transition:border-color .15s;
+}
+.pick-card:hover{border-color:var(--teal-mid);}
+.pick-card.selected{border-color:var(--teal-deep);background:var(--teal-pale);}
+.pick-card b{display:block;font-size:14.5px;font-family:var(--font-body);}
+.pick-card span{font-size:12px;color:var(--ink-soft);}
+.date-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-top:14px;}
+.date-pill{
+  flex-shrink:0;border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;text-align:center;background:var(--paper-raised);min-width:64px;
+}
+.date-pill b{display:block;font-family:var(--font-mono);font-size:16px;}
+.date-pill span{font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;}
+.date-pill.selected{border-color:var(--teal-deep);background:var(--teal-deep);}
+.date-pill.selected b, .date-pill.selected span{color:#F8FAF7;}
+.slot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;}
+.slot-btn{
+  border:1.5px solid var(--line);border-radius:8px;padding:9px 6px;font-family:var(--font-mono);font-size:12.5px;background:var(--paper-raised);
+}
+.slot-btn:hover:not(:disabled){border-color:var(--teal-mid);}
+.slot-btn.selected{background:var(--teal-deep);color:#F8FAF7;border-color:var(--teal-deep);}
+.slot-btn:disabled{opacity:.35;text-decoration:line-through;cursor:not-allowed;}
+.form-field{margin-top:16px;}
+.form-field label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;font-weight:500;}
+.form-field input, .form-field textarea, .form-field select{
+  width:100%;border:1.5px solid var(--line);border-radius:8px;padding:11px 12px;font-family:var(--font-body);font-size:14px;background:var(--paper-raised);color:var(--ink);
+}
+.form-field input:focus, .form-field textarea:focus{border-color:var(--teal-mid);outline:none;}
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-foot{display:flex;justify-content:space-between;padding:18px 26px 24px;gap:10px;}
+.hint{font-size:12px;color:var(--ink-soft);margin-top:10px;display:flex;align-items:center;gap:6px;}
+.hint svg{width:13px;height:13px;flex-shrink:0;}
+.summary-card{background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px;}
+.summary-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13.5px;border-bottom:1px solid var(--line-soft);}
+.summary-row:last-child{border-bottom:none;}
+.summary-row .l{color:var(--ink-soft);}
+.summary-row .v{font-weight:500;font-family:var(--font-mono);}
+.error-msg{background:var(--brick-pale);color:var(--brick);border-radius:8px;padding:10px 14px;font-size:13px;margin-top:12px;}
+.confirm-wrap{text-align:center;padding:6px 0 10px;}
+.confirm-check{width:52px;height:52px;border-radius:50%;background:var(--teal-pale);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.confirm-check svg{width:26px;height:26px;stroke:var(--teal-deep);}
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--teal-deep);color:#F8FAF7;
+  padding:12px 22px;border-radius:10px;font-size:13.5px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  display:none;
+}
+.toast.show{display:block;animation:toastin .25s ease;}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,8px);}to{opacity:1;transform:translate(-50%,0);}}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav-row">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#F8FAF7" stroke-width="2" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>
+      </span>
+      MedQueue
+    </div>
+    <nav class="links">
+      <a href="#departments">Departments</a>
+      <a href="#doctors">Doctors</a>
+      <a href="#appointments">My appointments</a>
+    </nav>
+    <div class="header-actions">
+      <button class="cta-btn ghost" onclick="document.getElementById('appointments').scrollIntoView()">My appointments</button>
+      <button class="cta-btn" onclick="openWizard()">Book appointment</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">Token-based scheduling</span>
+        <h1>Skip the waiting room.<br>Not the <em>care</em>.</h1>
+        <p class="lead">Pick a department, choose a doctor, and lock in a real time slot — no phone queues, no walk-in guesswork. Your token is ready the moment you confirm.</p>
+        <div class="hero-ctas">
+          <button class="cta-btn" onclick="openWizard()">Book an appointment</button>
+          <button class="cta-btn ghost" onclick="document.getElementById('doctors').scrollIntoView()">Browse doctors</button>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><b id="statDoctors">10</b><span>Doctors on staff</span></div>
+          <div class="stat"><b id="statDepts">8</b><span>Departments</span></div>
+          <div class="stat"><b>~12 min</b><span>Average wait once checked in</span></div>
+        </div>
+      </div>
+      <div class="ticket" aria-hidden="true">
+        <div class="ticket-main">
+          <span class="ticket-kicker">Sample token</span>
+          <div class="ticket-row"><span class="l">Patient</span><span class="v">A. Sharma</span></div>
+          <div class="ticket-row"><span class="l">Doctor</span><span class="v">Dr. Ananya Rao</span></div>
+          <div class="ticket-row"><span class="l">Department</span><span class="v">Cardiology</span></div>
+          <div class="ticket-row"><span class="l">Date</span><span class="v">Fri, 04 Jul</span></div>
+          <div class="ticket-row"><span class="l">Time</span><span class="v">10:30</span></div>
+          <div class="barcode">
+            <i style="height:100%"></i><i style="height:60%"></i><i style="height:80%"></i><i style="height:40%"></i>
+            <i style="height:100%"></i><i style="height:70%"></i><i style="height:50%"></i><i style="height:90%"></i>
+            <i style="height:65%"></i><i style="height:100%"></i><i style="height:45%"></i><i style="height:75%"></i>
+            <i style="height:55%"></i><i style="height:90%"></i><i style="height:35%"></i><i style="height:100%"></i>
+          </div>
+        </div>
+        <div class="ticket-seam"></div>
+        <div class="ticket-stub">
+          <span class="token-lbl">Token</span>
+          <span class="token-num">C-042</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="departments">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <h2>Departments</h2>
+          <p>Every doctor is organized by specialty. Select one to filter the directory below.</p>
+        </div>
+      </div>
+      <div class="dept-grid" id="deptGrid"></div>
+    </div>
+  </section>
+
+  <section id="doctors" style="background:var(--paper-raised);border-top:1px solid var(--line);border-bottom:1px solid var(--line);">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <h2>Find a doctor</h2>
+          <p>Filter by department, then book directly from a doctor's next available slot.</p>
+        </div>
+      </div>
+      <div class="filter-row" id="filterRow"></div>
+      <div class="doctor-grid" id="doctorGrid"></div>
+    </div>
+  </section>
+
+  <section id="appointments">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <h2>My appointments</h2>
+          <p>Appointments booked from this browser. Cancel anytime to free the slot for others.</p>
+        </div>
+      </div>
+      <div class="appt-list" id="apptList"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <span>MedQueue Hospital · Open Mon–Sat, 8:00–18:00 · Sundays closed</span>
+    <span class="foot-emerg">Medical emergency? Call your local emergency number immediately.</span>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h3 id="modalTitle">Book an appointment</h3>
+      <button class="close-x" onclick="closeWizard()" aria-label="Close">&times;</button>
+    </div>
+    <div class="steps-bar" id="stepsBar"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- Data ---------------- */
+const DEPARTMENTS = [
+  {id:'cardiology', name:'Cardiology', icon:'heart'},
+  {id:'orthopedics', name:'Orthopedics', icon:'bone'},
+  {id:'pediatrics', name:'Pediatrics', icon:'baby'},
+  {id:'dermatology', name:'Dermatology', icon:'drop'},
+  {id:'neurology', name:'Neurology', icon:'brain'},
+  {id:'general', name:'General Medicine', icon:'stethoscope'},
+  {id:'dental', name:'Dental', icon:'tooth'},
+  {id:'ent', name:'ENT', icon:'ear'},
+];
+
+const ICONS = {
+  heart:'<path d="M12 21s-7.5-4.7-10-9.2C.5 8.4 2.6 5 6.1 5c2 0 3.6 1.1 4.4 2.6C11.3 6.1 12.9 5 14.9 5c3.5 0 5.6 3.4 4.1 6.8C19.5 16.3 12 21 12 21z"/>',
+  bone:'<path d="M6 10a2.2 2.2 0 1 0-3-3 2.2 2.2 0 0 0 0 3l8 8a2.2 2.2 0 1 0 3 3 2.2 2.2 0 0 0 0-3M18 14a2.2 2.2 0 1 1 3 3 2.2 2.2 0 0 1-3 0l-8-8a2.2 2.2 0 1 1-3-3 2.2 2.2 0 0 1 3 0"/>',
+  baby:'<circle cx="12" cy="8" r="4"/><path d="M6 21c0-3.3 2.7-6 6-6s6 2.7 6 6"/>',
+  drop:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+  brain:'<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-1.5 5.6A3 3 0 0 0 6 18a3 3 0 0 0 3 3M9 4a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3M9 4v14M15 4a3 3 0 0 1 3 3 3 3 0 0 1 1.5 5.6A3 3 0 0 1 18 18a3 3 0 0 1-3 3M15 4a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3M15 4v14"/>',
+  stethoscope:'<path d="M5 3v6a4 4 0 0 0 8 0V3M9 15a5 5 0 0 0 10 0v-2"/><circle cx="19" cy="9" r="2"/>',
+  tooth:'<path d="M12 5c-2 0-2.5 1.5-4 1.5S5 5 4 6c-1.3 1.4-1 4 0 6 1 2 1.5 5 2.5 8 .5 1.5 2 1.5 2.5 0 .5-1.5 1-4.5 3-4.5s2.5 3 3 4.5c.5 1.5 2 1.5 2.5 0 1-3 1.5-6 2.5-8 1-2 1.3-4.6 0-6-1-1-2.5-.5-4-.5S14 5 12 5z"/>',
+  ear:'<path d="M8 14a5 5 0 0 1 5-9 6 6 0 0 1 6 6c0 4-3 5-3 8a3 3 0 0 1-6 0"/><path d="M9 12a2 2 0 0 1 2-2"/>',
+};
+
+const DOCTORS = [
+  {id:'d1', name:'Dr. Ananya Rao', dept:'cardiology', years:14, rating:4.9, fee:900, bio:'Interventional cardiologist focused on preventive heart health and post-surgical recovery.'},
+  {id:'d2', name:'Dr. Vikram Sethi', dept:'cardiology', years:9, rating:4.7, fee:750, bio:'Specializes in arrhythmia management and long-term cardiac monitoring.'},
+  {id:'d3', name:'Dr. Priya Nair', dept:'orthopedics', years:11, rating:4.8, fee:800, bio:'Joint replacement and sports injury specialist, works closely with physiotherapy.'},
+  {id:'d4', name:'Dr. Arjun Mehta', dept:'orthopedics', years:6, rating:4.6, fee:650, bio:'Focuses on spine care and non-surgical pain management for younger patients.'},
+  {id:'d5', name:'Dr. Kavita Iyer', dept:'pediatrics', years:15, rating:5.0, fee:600, bio:'Newborn to teen care, with a focus on immunization schedules and growth tracking.'},
+  {id:'d6', name:'Dr. Rohan Desai', dept:'dermatology', years:8, rating:4.7, fee:700, bio:'Treats acne, eczema, and pigmentation, alongside minor dermatologic procedures.'},
+  {id:'d7', name:'Dr. Sana Sheikh', dept:'neurology', years:12, rating:4.9, fee:950, bio:'Manages migraines, seizure disorders, and post-stroke rehabilitation planning.'},
+  {id:'d8', name:'Dr. Farhan Ali', dept:'general', years:10, rating:4.6, fee:500, bio:'Your first stop for everyday illness, checkups, and referrals to specialists.'},
+  {id:'d9', name:'Dr. Meera Pillai', dept:'dental', years:7, rating:4.8, fee:550, bio:'General dentistry, root canals, and cosmetic consultations in a calm setting.'},
+  {id:'d10', name:'Dr. Karan Bhatt', dept:'ent', years:9, rating:4.5, fee:600, bio:'Treats sinus issues, hearing concerns, and recurring throat infections.'},
+];
+
+const AVATAR_COLORS = ['#0F3B39','#1F6F68','#B5433B','#8C6118','#3d5049','#5b4a8c'];
+function avatarColor(id){ let n=0; for(const c of id) n+=c.charCodeAt(0); return AVATAR_COLORS[n % AVATAR_COLORS.length]; }
+function initials(name){ return name.replace('Dr. ','').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+const SLOT_TIMES = ['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'];
+
+function nextDays(n){
+  const out=[]; let d=new Date();
+  while(out.length<n){
+    d = new Date(d.getTime()+86400000);
+    if(d.getDay()!==0) out.push(new Date(d));
+  }
+  return out;
+}
+function fmtDateKey(d){ return d.toISOString().slice(0,10); }
+function fmtDateLabel(d){ return {weekday:d.toLocaleDateString('en-US',{weekday:'short'}), day:d.getDate(), month:d.toLocaleDateString('en-US',{month:'short'})}; }
+
+/* ---------------- State ---------------- */
+let state = {
+  activeDept: 'all',
+  bookedSlots: {},
+  myAppointments: [],
+  wizard: { step:1, doctor:null, dateKey:null, time:null, name:'', phone:'', email:'', reason:'' },
+  tokenCounter: 41,
+};
+
+/* ---------------- Storage ---------------- */
+async function loadData(){
+  try{
+    const shared = await window.storage.get('booked-slots', true);
+    state.bookedSlots = shared ? JSON.parse(shared.value) : {};
+  }catch(e){ state.bookedSlots = {}; }
+  try{
+    const mine = await window.storage.get('my-appointments', false);
+    state.myAppointments = mine ? JSON.parse(mine.value) : [];
+  }catch(e){ state.myAppointments = []; }
+  try{
+    const counter = await window.storage.get('token-counter', true);
+    state.tokenCounter = counter ? JSON.parse(counter.value) : 41;
+  }catch(e){ state.tokenCounter = 41; }
+}
+async function saveBookedSlots(){
+  try{ await window.storage.set('booked-slots', JSON.stringify(state.bookedSlots), true); }
+  catch(e){ console.error('Could not save slot availability', e); }
+}
+async function saveMyAppointments(){
+  try{ await window.storage.set('my-appointments', JSON.stringify(state.myAppointments), false); }
+  catch(e){ console.error('Could not save your appointments', e); }
+}
+async function saveTokenCounter(){
+  try{ await window.storage.set('token-counter', JSON.stringify(state.tokenCounter), true); }
+  catch(e){ /* non-critical */ }
+}
+
+function slotKey(docId, dateKey, time){ return docId+'|'+dateKey+'|'+time; }
+
+/* ---------------- Render: departments ---------------- */
+function renderDepartments(){
+  const grid = document.getElementById('deptGrid');
+  grid.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'dept-card' + (state.activeDept==='all' ? ' active':'');
+  allBtn.innerHTML = `<div class="dept-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></div><h4>All departments</h4><span class="count">${DOCTORS.length} doctors</span>`;
+  allBtn.onclick = ()=>{ state.activeDept='all'; renderDepartments(); renderFilters(); renderDoctors(); };
+  grid.appendChild(allBtn);
+  DEPARTMENTS.forEach(dep=>{
+    const count = DOCTORS.filter(d=>d.dept===dep.id).length;
+    const card = document.createElement('button');
+    card.className = 'dept-card' + (state.activeDept===dep.id ? ' active':'');
+    card.innerHTML = `<div class="dept-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[dep.icon]}</svg></div><h4>${dep.name}</h4><span class="count">${count} doctor${count===1?'':'s'}</span>`;
+    card.onclick = ()=>{ state.activeDept=dep.id; renderDepartments(); renderFilters(); renderDoctors(); document.getElementById('doctors').scrollIntoView({behavior:'smooth'}); };
+    grid.appendChild(card);
+  });
+  document.getElementById('statDoctors').textContent = DOCTORS.length;
+  document.getElementById('statDepts').textContent = DEPARTMENTS.length;
+}
+
+/* ---------------- Render: filter chips ---------------- */
+function renderFilters(){
+  const row = document.getElementById('filterRow');
+  row.innerHTML = '';
+  const chips = [{id:'all', name:'All'}, ...DEPARTMENTS];
+  chips.forEach(c=>{
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (state.activeDept===c.id ? ' active':'');
+    chip.textContent = c.name;
+    chip.onclick = ()=>{ state.activeDept=c.id; renderDepartments(); renderFilters(); renderDoctors(); };
+    row.appendChild(chip);
+  });
+}
+
+/* ---------------- Render: doctor cards ---------------- */
+function nextAvailable(doc){
+  const days = nextDays(6);
+  for(const d of days){
+    const dk = fmtDateKey(d);
+    for(const t of SLOT_TIMES){
+      if(!state.bookedSlots[slotKey(doc.id, dk, t)]){
+        const lbl = fmtDateLabel(d);
+        return `${lbl.weekday} ${lbl.day} ${lbl.month}, ${t}`;
+      }
+    }
+  }
+  return 'Fully booked';
+}
+
+function renderDoctors(){
+  const grid = document.getElementById('doctorGrid');
+  grid.innerHTML = '';
+  const list = state.activeDept==='all' ? DOCTORS : DOCTORS.filter(d=>d.dept===state.activeDept);
+  if(list.length===0){
+    grid.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">No doctors in this department yet.</p>';
+    return;
+  }
+  list.forEach(doc=>{
+    const dep = DEPARTMENTS.find(d=>d.id===doc.dept);
+    const card = document.createElement('div');
+    card.className = 'doc-card';
+    card.innerHTML = `
+      <div class="doc-top">
+        <div class="avatar" style="background:${avatarColor(doc.id)}">${initials(doc.name)}</div>
+        <div>
+          <div class="doc-name">${doc.name}</div>
+          <div class="doc-spec">${dep.name}</div>
+        </div>
+      </div>
+      <div class="doc-meta">
+        <span>${doc.years} yrs experience</span>
+        <span>★ ${doc.rating}</span>
+        <span>₹${doc.fee} consult</span>
+      </div>
+      <p class="doc-bio">${doc.bio}</p>
+      <div class="doc-foot">
+        <div class="next-slot">Next: <b>${nextAvailable(doc)}</b></div>
+        <button class="book-btn">Book</button>
+      </div>
+    `;
+    card.querySelector('.book-btn').onclick = ()=> openWizard(doc.id);
+    grid.appendChild(card);
+  });
+}
+
+/* ---------------- Render: my appointments ---------------- */
+function renderAppointments(){
+  const list = document.getElementById('apptList');
+  list.innerHTML = '';
+  if(state.myAppointments.length===0){
+    list.innerHTML = `<div class="appt-empty"><h4>No appointments yet</h4><p>Book your first appointment above — it will show up here with your token number.</p></div>`;
+    return;
+  }
+  const sorted = [...state.myAppointments].sort((a,b)=> (a.dateKey+a.time).localeCompare(b.dateKey+b.time));
+  sorted.forEach(appt=>{
+    const doc = DOCTORS.find(d=>d.id===appt.docId);
+    const dep = DEPARTMENTS.find(d=>d.id===(doc?doc.dept:''));
+    const row = document.createElement('div');
+    row.className = 'appt-row';
+    const d = new Date(appt.dateKey);
+    const lbl = fmtDateLabel(d);
+    row.innerHTML = `
+      <div class="appt-status ${appt.status}"></div>
+      <div class="appt-body">
+        <div class="appt-info">
+          <b>${doc ? doc.name : 'Doctor unavailable'}</b>
+          <div class="sub">${dep ? dep.name : ''} · ${appt.name} · Token ${appt.token}</div>
+        </div>
+        <div class="appt-when">
+          <span class="badge ${appt.status}">${appt.status}</span>
+          <div style="margin-top:6px;">${lbl.weekday} ${lbl.day} ${lbl.month} · ${appt.time}</div>
+        </div>
+        <div class="appt-actions">
+          ${appt.status==='upcoming' ? '<button class="cancel-btn">Cancel</button>' : ''}
+        </div>
+      </div>
+    `;
+    if(appt.status==='upcoming'){
+      row.querySelector('.cancel-btn').onclick = ()=> cancelAppointment(appt.id);
+    }
+    list.appendChild(row);
+  });
+}
+
+async function cancelAppointment(apptId){
+  const appt = state.myAppointments.find(a=>a.id===apptId);
+  if(!appt) return;
+  appt.status = 'cancelled';
+  delete state.bookedSlots[slotKey(appt.docId, appt.dateKey, appt.time)];
+  await saveMyAppointments();
+  await saveBookedSlots();
+  renderAppointments();
+  renderDoctors();
+  showToast('Appointment cancelled — the slot is open again.');
+}
+
+/* ---------------- Toast ---------------- */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 3200);
+}
+
+/* ---------------- Booking wizard ---------------- */
+const STEP_LABELS = ['Department','Doctor','Date & time','Your details','Confirm'];
+
+function openWizard(doctorId){
+  state.wizard = { step:1, doctor: doctorId ? DOCTORS.find(d=>d.id===doctorId) : null, dateKey:null, time:null, name:'', phone:'', email:'', reason:'', error:'' };
+  if(state.wizard.doctor) state.wizard.step = 3;
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderWizard();
+}
+function closeWizard(){
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.id==='overlay') closeWizard(); });
+
+function renderStepsBar(){
+  const bar = document.getElementById('stepsBar');
+  bar.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i<state.wizard.step ? ' done' : i===state.wizard.step ? ' current' : '');
+    bar.appendChild(dot);
+  }
+}
+
+function renderWizard(){
+  renderStepsBar();
+  const w = state.wizard;
+  const body = document.getElementById('modalBody');
+  const foot = document.getElementById('modalFoot');
+  document.getElementById('modalTitle').textContent = w.step===5 ? 'Appointment confirmed' : 'Book an appointment';
+
+  if(w.step===1){
+    body.innerHTML = `<div class="step-label">Step 1 · ${STEP_LABELS[0]}</div><div class="pick-grid" id="wDeptGrid"></div>`;
+    const grid = body.querySelector('#wDeptGrid');
+    DEPARTMENTS.forEach(dep=>{
+      const c = document.createElement('button');
+      c.className = 'pick-card' + (w._dept===dep.id ? ' selected':'');
+      c.innerHTML = `<b>${dep.name}</b><span>${DOCTORS.filter(d=>d.dept===dep.id).length} doctors</span>`;
+      c.onclick = ()=>{ w._dept = dep.id; renderWizard(); };
+      grid.appendChild(c);
+    });
+    foot.innerHTML = `<span></span><button class="cta-btn" id="wNext" ${w._dept?'':'disabled style="opacity:.5;cursor:not-allowed;"'}>Continue</button>`;
+    foot.querySelector('#wNext').onclick = ()=>{ if(w._dept){ w.step=2; renderWizard(); } };
+  }
+
+  else if(w.step===2){
+    const list = DOCTORS.filter(d=>d.dept===w._dept);
+    body.innerHTML = `<div class="step-label">Step 2 · ${STEP_LABELS[1]}</div><div class="pick-grid" id="wDocGrid" style="grid-template-columns:1fr;"></div>`;
+    const grid = body.querySelector('#wDocGrid');
+    list.forEach(doc=>{
+      const c = document.createElement('button');
+      c.className = 'pick-card' + (w.doctor && w.doctor.id===doc.id ? ' selected':'');
+      c.style.display='flex'; c.style.gap='12px'; c.style.alignItems='center';
+      c.innerHTML = `<div class="avatar" style="background:${avatarColor(doc.id)};width:38px;height:38px;font-size:13px;flex-shrink:0;">${initials(doc.name)}</div><div><b>${doc.name}</b><span>${doc.years} yrs · ★ ${doc.rating} · ₹${doc.fee}</span></div>`;
+      c.onclick = ()=>{ w.doctor = doc; renderWizard(); };
+      grid.appendChild(c);
+    });
+    foot.innerHTML = `<button class="cta-btn ghost" id="wBack">Back</button><button class="cta-btn" id="wNext" ${w.doctor?'':'disabled style="opacity:.5;cursor:not-allowed;"'}>Continue</button>`;
+    foot.querySelector('#wBack').onclick = ()=>{ w.step=1; renderWizard(); };
+    foot.querySelector('#wNext').onclick = ()=>{ if(w.doctor){ w.step=3; renderWizard(); } };
+  }
+
+  else if(w.step===3){
+    const days = nextDays(6);
+    body.innerHTML = `
+      <div class="step-label">Step 3 · ${STEP_LABELS[2]}</div>
+      <p style="font-size:13.5px;color:var(--ink-soft);">Booking with <b style="color:var(--ink);">${w.doctor.name}</b></p>
+      <div class="date-row" id="wDateRow"></div>
+      <div class="slot-grid" id="wSlotGrid"></div>
+      <div class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>Availability updates in real time and is shared with other visitors booking this doctor.</div>
+    `;
+    const dateRow = body.querySelector('#wDateRow');
+    days.forEach(d=>{
+      const dk = fmtDateKey(d);
+      const lbl = fmtDateLabel(d);
+      const pill = document.createElement('button');
+      pill.className = 'date-pill' + (w.dateKey===dk ? ' selected':'');
+      pill.innerHTML = `<b>${lbl.day}</b><span>${lbl.weekday}</span>`;
+      pill.onclick = ()=>{ w.dateKey = dk; w.time=null; renderWizard(); };
+      dateRow.appendChild(pill);
+    });
+    if(!w.dateKey) w.dateKey = fmtDateKey(days[0]);
+    const slotGrid = body.querySelector('#wSlotGrid');
+    SLOT_TIMES.forEach(t=>{
+      const taken = !!state.bookedSlots[slotKey(w.doctor.id, w.dateKey, t)];
+      const btn = document.createElement('button');
+      btn.className = 'slot-btn' + (w.time===t ? ' selected':'');
+      btn.textContent = t;
+      btn.disabled = taken;
+      btn.onclick = ()=>{ w.time = t; renderWizard(); };
+      slotGrid.appendChild(btn);
+    });
+    renderWizard._reselectDate = true;
+    foot.innerHTML = `<button class="cta-btn ghost" id="wBack">Back</button><button class="cta-btn" id="wNext" ${w.time?'':'disabled style="opacity:.5;cursor:not-allowed;"'}>Continue</button>`;
+    foot.querySelector('#wBack').onclick = ()=>{ w.step=2; renderWizard(); };
+    foot.querySelector('#wNext').onclick = ()=>{ if(w.time){ w.step=4; renderWizard(); } };
+  }
+
+  else if(w.step===4){
+    body.innerHTML = `
+      <div class="step-label">Step 4 · ${STEP_LABELS[3]}</div>
+      <div class="form-row2">
+        <div class="form-field"><label for="fName">Full name</label><input id="fName" type="text" value="${w.name}" placeholder="Asha Sharma"></div>
+        <div class="form-field"><label for="fPhone">Phone number</label><input id="fPhone" type="tel" value="${w.phone}" placeholder="98765 43210"></div>
+      </div>
+      <div class="form-field"><label for="fEmail">Email</label><input id="fEmail" type="email" value="${w.email}" placeholder="asha@email.com"></div>
+      <div class="form-field"><label for="fReason">Reason for visit (optional)</label><textarea id="fReason" rows="3" placeholder="Brief description of your symptoms or concern">${w.reason}</textarea></div>
+      ${w.error ? `<div class="error-msg">${w.error}</div>` : ''}
+    `;
+    foot.innerHTML = `<button class="cta-btn ghost" id="wBack">Back</button><button class="cta-btn" id="wNext">Review booking</button>`;
+    foot.querySelector('#wBack').onclick = ()=>{ w.step=3; renderWizard(); };
+    foot.querySelector('#wNext').onclick = ()=>{
+      w.name = document.getElementById('fName').value.trim();
+      w.phone = document.getElementById('fPhone').value.trim();
+      w.email = document.getElementById('fEmail').value.trim();
+      w.reason = document.getElementById('fReason').value.trim();
+      if(!w.name || !w.phone){
+        w.error = 'Enter your name and phone number to continue.';
+        renderWizard();
+        return;
+      }
+      w.error = '';
+      w.step = 5;
+      renderWizard();
+    };
+  }
+
+  else if(w.step===5){
+    const dep = DEPARTMENTS.find(d=>d.id===w.doctor.dept);
+    const d = new Date(w.dateKey);
+    const lbl = fmtDateLabel(d);
+    body.innerHTML = `
+      <div class="step-label">Step 5 · ${STEP_LABELS[4]}</div>
+      <p style="font-size:13.5px;color:var(--ink-soft);">Check the details below, then confirm to receive your token.</p>
+      <div class="summary-card">
+        <div class="summary-row"><span class="l">Doctor</span><span class="v">${w.doctor.name}</span></div>
+        <div class="summary-row"><span class="l">Department</span><span class="v">${dep.name}</span></div>
+        <div class="summary-row"><span class="l">Date</span><span class="v">${lbl.weekday} ${lbl.day} ${lbl.month}</span></div>
+        <div class="summary-row"><span class="l">Time</span><span class="v">${w.time}</span></div>
+        <div class="summary-row"><span class="l">Patient</span><span class="v">${w.name}</span></div>
+        <div class="summary-row"><span class="l">Consult fee</span><span class="v">₹${w.doctor.fee}</span></div>
+      </div>
+      ${w.error ? `<div class="error-msg">${w.error}</div>` : ''}
+    `;
+    foot.innerHTML = `<button class="cta-btn ghost" id="wBack">Back</button><button class="cta-btn" id="wConfirm">Confirm booking</button>`;
+    foot.querySelector('#wBack').onclick = ()=>{ w.step=4; renderWizard(); };
+    foot.querySelector('#wConfirm').onclick = confirmBooking;
+  }
+}
+
+async function confirmBooking(){
+  const w = state.wizard;
+  const key = slotKey(w.doctor.id, w.dateKey, w.time);
+  await loadFreshSlots();
+  if(state.bookedSlots[key]){
+    w.error = 'That slot was just taken by someone else. Pick another time.';
+    w.step = 3; w.time = null;
+    renderWizard();
+    return;
+  }
+  const dep = DEPARTMENTS.find(d=>d.id===w.doctor.dept);
+  const tokenLetter = dep.name[0].toUpperCase();
+  state.tokenCounter += 1;
+  const token = `${tokenLetter}-${String(state.tokenCounter).padStart(3,'0')}`;
+  const appt = {
+    id: 'a'+Date.now()+Math.random().toString(36).slice(2,7),
+    docId: w.doctor.id,
+    dateKey: w.dateKey,
+    time: w.time,
+    name: w.name,
+    phone: w.phone,
+    email: w.email,
+    reason: w.reason,
+    token,
+    status: 'upcoming',
+  };
+  state.bookedSlots[key] = appt.id;
+  state.myAppointments.push(appt);
+  await saveBookedSlots();
+  await saveMyAppointments();
+  await saveTokenCounter();
+
+  const body = document.getElementById('modalBody');
+  const foot = document.getElementById('modalFoot');
+  document.getElementById('modalTitle').textContent = 'Appointment confirmed';
+  document.getElementById('stepsBar').innerHTML = '';
+  const d = new Date(w.dateKey);
+  const lbl = fmtDateLabel(d);
+  body.innerHTML = `
+    <div class="confirm-wrap">
+      <div class="confirm-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <h4 style="font-size:19px;">You're booked, ${w.name.split(' ')[0]}</h4>
+      <p style="font-size:13.5px;color:var(--ink-soft);margin-top:6px;">Show this token at the front desk when you arrive.</p>
+    </div>
+    <div class="ticket" style="margin-top:20px;">
+      <div class="ticket-main">
+        <span class="ticket-kicker">MedQueue token</span>
+        <div class="ticket-row"><span class="l">Patient</span><span class="v">${w.name}</span></div>
+        <div class="ticket-row"><span class="l">Doctor</span><span class="v">${w.doctor.name}</span></div>
+        <div class="ticket-row"><span class="l">Department</span><span class="v">${dep.name}</span></div>
+        <div class="ticket-row"><span class="l">Date</span><span class="v">${lbl.weekday} ${lbl.day} ${lbl.month}</span></div>
+        <div class="ticket-row"><span class="l">Time</span><span class="v">${w.time}</span></div>
+        <div class="barcode">
+          <i style="height:100%"></i><i style="height:55%"></i><i style="height:85%"></i><i style="height:35%"></i>
+          <i style="height:95%"></i><i style="height:65%"></i><i style="height:45%"></i><i style="height:100%"></i>
+          <i style="height:60%"></i><i style="height:90%"></i><i style="height:40%"></i><i style="height:80%"></i>
+        </div>
+      </div>
+      <div class="ticket-seam"></div>
+      <div class="ticket-stub">
+        <span class="token-lbl">Token</span>
+        <span class="token-num">${token}</span>
+      </div>
+    </div>
+  `;
+  foot.innerHTML = `<span></span><button class="cta-btn" id="wDone">Done</button>`;
+  foot.querySelector('#wDone').onclick = ()=>{ closeWizard(); renderAppointments(); renderDoctors(); };
+  renderAppointments();
+  renderDoctors();
+}
+
+async function loadFreshSlots(){
+  try{
+    const shared = await window.storage.get('booked-slots', true);
+    state.bookedSlots = shared ? JSON.parse(shared.value) : {};
+  }catch(e){ /* keep existing */ }
+}
+
+/* ---------------- Init ---------------- */
+async function init(){
+  renderDepartments();
+  renderFilters();
+  renderDoctors();
+  renderAppointments();
+  await loadData();
+  renderDepartments();
+  renderDoctors();
+  renderAppointments();
+}
+init();
+</script>
+</body>
+</html>
